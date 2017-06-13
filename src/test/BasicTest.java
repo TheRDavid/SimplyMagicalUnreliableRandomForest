@@ -3,14 +3,18 @@ package test;
 import ir.DataSet;
 import ir.Element;
 import ir.RForest;
+import ir.Vector3;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -27,14 +31,85 @@ public class BasicTest {
 		//staticTest1();
 		emotionTest();
 	}
-	
-	private static void emotionTest()
-	{
+
+	private static void emotionTest() {
+		int landmarkPoints = 59;
+
+		File resDir = new File("res");
+		File[] allResFiles = resDir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File arg0) {
+				return arg0.getAbsolutePath().endsWith(".csv");
+			}
+		});
+
+		ArrayList<Element<Vector3>> elements = new ArrayList<>();
+
+		for (File resFile : allResFiles) {
+			try {
+				BufferedReader buffReader = new BufferedReader(new FileReader(resFile));
+
+				int category = 0;
+				if (resFile.getName().contains("anger"))
+					category = 0;
+				else if (resFile.getName().contains("joy"))
+					category = 1;
+				else if (resFile.getName().contains("fear"))
+					category = 2;
+				else if (resFile.getName().contains("contempt"))
+					category = 3;
+				else if (resFile.getName().contains("sadness"))
+					category = 4;
+				else if (resFile.getName().contains("disgust"))
+					category = 5;
+				else if (resFile.getName().contains("surprise"))
+					category = 6;
+				String line;
+				while ((line = buffReader.readLine()) != null) {
+					Vector3[] attribs = new Vector3[landmarkPoints * landmarkPoints];
+					int attribIdx = 0;
+					StringTokenizer tokenizer = new StringTokenizer(line, ";");
+					String vec;
+					while (tokenizer.hasMoreElements()) {
+						vec = tokenizer.nextToken();
+						String[] vals = vec.split(",");
+						attribs[attribIdx++] = new Vector3(Double.parseDouble(vals[0]),
+								Double.parseDouble(vals[1]), Double.parseDouble(vals[2]));
+						/*
+						attribs[attribIdx++] = Double.parseDouble(vals[0]);
+						attribs[attribIdx++] = Double.parseDouble(vals[1]);
+						attribs[attribIdx++] = Double.parseDouble(vals[2]);*/
+					}
+					elements.add(new Element<Vector3>(attribs, category));
+				}
+
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		System.out.println(elements.size());
 		
+		float subSampleSize = .1f;
+		int numSubSamples = 1, features = 59 * 59;
+		float featureSampleSlice = 1f;
+
+		DataSet<Vector3> dataSet = new DataSet<Vector3>(features, featureSampleSlice,
+				elements);
+		System.out.println(dataSet.generateCategoryMap(elements).size());
+		RForest<Vector3> forest = new RForest<Vector3>(dataSet, subSampleSize,
+				numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
+
+		RForestUI<Vector3> ui = new RForestUI<Vector3>(forest);
+		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
-	
-	private static void printData()
-	{
+
+	private static void printData() {
 		printFor(-14, -12, -4, -2, 3);
 		printFor(-12, -2, -1, 0, 1);
 		printFor(-3, -12, -1, 0, 1);
@@ -53,20 +128,23 @@ public class BasicTest {
 		float subSampleSize = 0.25f;
 		int numSubSamples = 50, features = 2;
 		float featureSampleSlice = 1f;
-		
-		ArrayList<Element> elements = new ArrayList<>();
+
+		ArrayList<Element<Double>> elements = new ArrayList<>();
 		File dataFile = new File("data.csv");
 		try {
 			List<String> data = Files.readAllLines(dataFile.toPath());
-			for(String s : data)
-			{
+			for (String s : data) {
 				String[] array = s.split(",");
-				Element e = new Element(new double[]{Double.parseDouble(array[0]), Double.parseDouble(array[1])},Integer.parseInt(array[2]));
+				Element<Double> e = new Element<Double>(new Double[] {
+						Double.parseDouble(array[0]), Double.parseDouble(array[1]) },
+						Integer.parseInt(array[2]));
 				elements.add(e);
 			}
 
-			DataSet dataSet = new DataSet(features, featureSampleSlice, elements);
-			RForest forest = new RForest(dataSet, subSampleSize, numSubSamples);
+			DataSet<Double> dataSet = new DataSet<Double>(features, featureSampleSlice,
+					elements);
+			RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
+					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
 
 			RForestUI ui = new RForestUI(forest);
 			ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -83,88 +161,6 @@ public class BasicTest {
 			double newY = (y + (y1 - y) * Math.random());
 			System.out.println(newX + "," + newY + "," + c);
 		}
-	}
-
-	private static void staticTest0() {
-		float subSampleSize = 0.5f;
-		int numSubSamples = 4, features = 2;
-		float featureSampleSlice = 1f;
-
-		ArrayList<Element> data = new ArrayList<>();
-		data.add(new Element(new double[] { 2, 2 }, 0));
-		data.add(new Element(new double[] { 4, 1 }, 0));
-		data.add(new Element(new double[] { 4, 3 }, 0));
-		data.add(new Element(new double[] { 3, 7 }, 0));
-		data.add(new Element(new double[] { 1, 4 }, 0));
-		data.add(new Element(new double[] { 2, 3 }, 0));
-
-		data.add(new Element(new double[] { -2, 1 }, 1));
-		data.add(new Element(new double[] { -3, 3 }, 1));
-		data.add(new Element(new double[] { -6, 2 }, 1));
-		data.add(new Element(new double[] { -3, 2 }, 1));
-		data.add(new Element(new double[] { -5, 6 }, 1));
-		data.add(new Element(new double[] { -8, 3 }, 1));
-
-		data.add(new Element(new double[] { -2, -3 }, 2));
-		data.add(new Element(new double[] { -2, -6 }, 2));
-		data.add(new Element(new double[] { -4, -6 }, 2));
-		data.add(new Element(new double[] { -1, -6 }, 2));
-		data.add(new Element(new double[] { -4, -8 }, 2));
-		data.add(new Element(new double[] { -2, -9 }, 2));
-
-		data.add(new Element(new double[] { 2, -4 }, 3));
-		data.add(new Element(new double[] { 5, -3 }, 3));
-		data.add(new Element(new double[] { 6, -2 }, 3));
-		data.add(new Element(new double[] { 4, -2 }, 3));
-		data.add(new Element(new double[] { 5, -1 }, 3));
-		data.add(new Element(new double[] { 3, -8 }, 3));
-
-		DataSet dataSet = new DataSet(features, featureSampleSlice, data);
-		RForest forest = new RForest(dataSet, subSampleSize, numSubSamples);
-
-		RForestUI ui = new RForestUI(forest);
-		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	}
-
-	private static void staticTest1() {
-		float subSampleSize = 0.5f;
-		int numSubSamples = 4, features = 2;
-		float featureSampleSlice = 1f;
-
-		ArrayList<Element> data = new ArrayList<>();
-		data.add(new Element(new double[] { 2, 2 }, 0));
-		data.add(new Element(new double[] { 4, 1 }, 0));
-		data.add(new Element(new double[] { 4, 3 }, 0));
-		data.add(new Element(new double[] { 3, 7 }, 0));
-		data.add(new Element(new double[] { 1, 4 }, 0));
-		data.add(new Element(new double[] { 2, 3 }, 0));
-
-		data.add(new Element(new double[] { -2, 1 }, 1));
-		data.add(new Element(new double[] { -3, 3 }, 1));
-		data.add(new Element(new double[] { -6, 2 }, 1));
-		data.add(new Element(new double[] { -3, 2 }, 1));
-		data.add(new Element(new double[] { -5, 6 }, 1));
-		data.add(new Element(new double[] { -8, 3 }, 1));
-
-		data.add(new Element(new double[] { -2, -3 }, 2));
-		data.add(new Element(new double[] { -2, -6 }, 2));
-		data.add(new Element(new double[] { -4, -6 }, 2));
-		data.add(new Element(new double[] { -1, -6 }, 2));
-		data.add(new Element(new double[] { -4, -8 }, 2));
-		data.add(new Element(new double[] { -2, -9 }, 2));
-
-		data.add(new Element(new double[] { 2, -4 }, 3));
-		data.add(new Element(new double[] { 5, -3 }, 3));
-		data.add(new Element(new double[] { 6, -2 }, 3));
-		data.add(new Element(new double[] { 4, -2 }, 3));
-		data.add(new Element(new double[] { 5, -1 }, 3));
-		data.add(new Element(new double[] { 3, -8 }, 3));
-
-		DataSet dataSet = new DataSet(features, featureSampleSlice, data);
-		RForest forest = new RForest(dataSet, subSampleSize, numSubSamples);
-
-		RForestUI ui = new RForestUI(forest);
-		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	private static void randomTest() {
@@ -189,16 +185,17 @@ public class BasicTest {
 			}
 		}).start();
 
-		ArrayList<Element> data = new ArrayList<>();
+		ArrayList<Element<Double>> data = new ArrayList<>();
 		for (int i = 0; i < numElements; i++) {
-			double[] attribs = new double[features];
+			Double[] attribs = new Double[features];
 			for (int j = 0; j < features; j++)
 				attribs[j] = (Math.random() * (maxVal - minVal) + minVal);
-			data.add(new Element(attribs, (int) (Math.random() * numCats)));
+			data.add(new Element<Double>(attribs, (int) (Math.random() * numCats)));
 		}
 
-		DataSet dataSet = new DataSet(features, featureSampleSlice, data);
-		RForest forest = new RForest(dataSet, subSampleSize, numSubSamples);
+		DataSet<Double> dataSet = new DataSet<Double>(features, featureSampleSlice, data);
+		RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
+				numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
 
 		RForestUI ui = new RForestUI(forest);
 		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

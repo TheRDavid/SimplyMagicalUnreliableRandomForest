@@ -1,9 +1,9 @@
 package ir;
-public class SplitPoint {
+public class SplitPoint<T extends Comparable<T>> {
 	private int featureIndex;
-	private double splitValue;
+	private T splitValue;
 
-	public SplitPoint(int fi, Element e) {
+	public SplitPoint(int fi, Element<T> e) {
 		featureIndex = fi;
 		splitValue = e.getAttribute(fi);
 	}
@@ -12,7 +12,7 @@ public class SplitPoint {
 		return featureIndex;
 	}
 
-	public double getSplitValue() {
+	public T getSplitValue() {
 		return splitValue;
 	}
 }

@@ -1,10 +1,12 @@
 package test;
 
+import ir.DataSet.SplitResult;
 import ir.Element;
 import ir.RForest;
 import ir.RTree;
+import ir.RTree.RNode;
 import ir.SplitPoint;
-import ir.DataSet.SplitResult;
+import ir.Vector3;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -42,17 +44,18 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-public class RForestUI extends JFrame {
+public class RForestUI<T extends Comparable<T>> extends JFrame {
 
 	private JTree tree;
 	private JButton testButton = new JButton("Categorize Value");
-	private RForest randomForest;
+	private RForest<T> randomForest;
 	private JPopupMenu dataPopup = new JPopupMenu();
 	private JMenuItem graphItem = new JMenuItem("Graph");
 	private JMenuItem splitItem = new JMenuItem("All Splits");
-	private RTree.RNode selectedNode = null;
+	private RNode selectedNode = null;
+	Class type;
 
-	public RForestUI(final RForest forest) {
+	public RForestUI(final RForest<T> forest) {
 		dataPopup.add(graphItem);
 		graphItem.addActionListener(new ActionListener() {
 
@@ -74,28 +77,34 @@ public class RForestUI extends JFrame {
 			}
 		});
 		randomForest = forest;
+		type = randomForest.getData().getElements().get(0).getAttribute(0).getClass();
 		final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(
 				"RANDOM FOREST");
 		int treeNum = 0;
 
-		for (RTree rt : forest.getTrees()) {
+		for (RTree<T> rt : forest.getTrees()) {
 			DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("Tree #"
 					+ treeNum++);
 			fillTreeNode(treeNode, rt.getRoot());
 			rootNode.add(treeNode);
 		}
+		System.out.println("Done building tree, now building data node");
 		DefaultMutableTreeNode dataNode = new DefaultMutableTreeNode("DATA");
 
-		ArrayList<Element> elements = forest.getData().getElements();
+		ArrayList<Element<T>> elements = forest.getData().getElements();
+		System.out.println("Sorting by category");
 		Collections.sort(elements, new Comparator<Element>() {
 			@Override
 			public int compare(Element arg0, Element arg1) {
 				return arg0.getCategory() - arg1.getCategory();
 			};
 		});
+		System.out.println("Done sorting by category, now adding to dataNode");
 		for (Element e : elements)
 			dataNode.add(new DefaultMutableTreeNode(e.toString()));
+		System.out.println("Added to dataNode");
 		rootNode.add(dataNode);
+		System.out.println("Done building data node, now building TreeUI");
 
 		tree = new JTree(rootNode);
 		tree.getSelectionModel().setSelectionMode(
@@ -118,11 +127,12 @@ public class RForestUI extends JFrame {
 			public void mouseReleased(MouseEvent arg0) {
 				System.out.println(selectedNode);
 				if (selectedNode != null && arg0.getButton() == 3) {
-					splitItem.setEnabled(selectedNode.getLeft()!=null);
+					splitItem.setEnabled(selectedNode.getLeft() != null);
 					dataPopup.show(RForestUI.this, arg0.getX(), arg0.getY());
 				}
 			}
 		});
+		System.out.println("Done building TreeUI");
 		add(new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS), BorderLayout.CENTER);
 		add(testButton, BorderLayout.SOUTH);
@@ -134,14 +144,26 @@ public class RForestUI extends JFrame {
 				String s = (String) JOptionPane.showInputDialog("Insert Values",
 						"v0,v1,v2,...");
 				s = s.replaceAll(" ", "");
-				StringTokenizer tok = new StringTokenizer(s, ",");
-				double attribs[] = new double[forest.getData().featureCount()];
-				for (int i = 0; i < attribs.length; i++) {
-					attribs[i] = Double.parseDouble(tok.nextToken());
+				T attribs[] = (T[]) new Object[forest.getData().featureCount()];
+
+				if (type.equals(Double.class)) {
+					StringTokenizer tok = new StringTokenizer(s, ",");
+					for (int i = 0; i < attribs.length; i++) {
+						attribs[i] = (T) new Double(Double.parseDouble(tok.nextToken()));
+					}
+				} else if (type.equals(Vector3.class)) {
+					StringTokenizer tok = new StringTokenizer(s, ";");
+					for (int i = 0; i < attribs.length; i++) {
+						String[] vectorDescription = tok.nextToken().split(",");
+						attribs[i] = (T) new Vector3(Double
+								.parseDouble(vectorDescription[0]), Double
+								.parseDouble(vectorDescription[1]), Double
+								.parseDouble(vectorDescription[2])); // totally save
+					}
 				}
 
 				JOptionPane.showMessageDialog(RForestUI.this,
-						"Category: " + forest.categorize(new Element(attribs)));
+						"Category: " + forest.categorize(new Element<T>(attribs)));
 
 			}
 		});
@@ -152,19 +174,22 @@ public class RForestUI extends JFrame {
 		setVisible(true);
 	}
 
-	private void fillTreeNode(DefaultMutableTreeNode treeNode, RTree.RNode node) {
+	int temp = 0;
 
+	private void fillTreeNode(DefaultMutableTreeNode treeNode, RTree.RNode node) {
+		int lvl = temp++;
+		System.out.println("Filling Node " + lvl);
 		if (node.getLeft() != null) {
 
-			DefaultMutableTreeNode leftTreeNode = new DefaultMutableTreeNode("LEFT Feature: "
-					+ node.getSplitPoint().getFeatureIndex() + " <"
-					+ node.getSplitPoint().getSplitValue() + " => "
-					+ node.getLeft().getCategory());
+			DefaultMutableTreeNode leftTreeNode = new DefaultMutableTreeNode(
+					"LEFT Feature: " + node.getSplitPoint().getFeatureIndex() + " <"
+							+ node.getSplitPoint().getSplitValue() + " => "
+							+ node.getLeft().getCategory());
 			fillTreeNode(leftTreeNode, node.getLeft());
-			DefaultMutableTreeNode rightTreeNode = new DefaultMutableTreeNode("RIGHT Feature: "
-					+ node.getSplitPoint().getFeatureIndex() + " >="
-					+ node.getSplitPoint().getSplitValue() + " => "
-					+ node.getRight().getCategory());
+			DefaultMutableTreeNode rightTreeNode = new DefaultMutableTreeNode(
+					"RIGHT Feature: " + node.getSplitPoint().getFeatureIndex() + " >="
+							+ node.getSplitPoint().getSplitValue() + " => "
+							+ node.getRight().getCategory());
 			fillTreeNode(rightTreeNode, node.getRight());
 			treeNode.add(leftTreeNode);
 			treeNode.add(rightTreeNode);
@@ -183,6 +208,7 @@ public class RForestUI extends JFrame {
 		for (Element e : elements)
 			dataNode.add(new DefaultMutableTreeNode(e.toString()));
 		treeNode.add(dataNode);
+		System.out.println("Done Filling Node " + lvl);
 	}
 
 	private void collapseTree(JTree tree, TreePath parent) {
@@ -208,51 +234,59 @@ public class RForestUI extends JFrame {
 				super.paintComponent(arg0);
 				Graphics2D g = (Graphics2D) arg0;
 
-				int xStep = 60;
-				int yStep = 60;
-				int ovalRadius = 4;
+				if (type.equals(Double.class)) {
 
-				g.drawLine(0, getHeight() / 2, getWidth(), getHeight() / 2);
-				g.drawLine(getWidth() / 2, 0, getWidth() / 2, getHeight());
+					int xStep = 60;
+					int yStep = 60;
+					int ovalRadius = 4;
 
-				for (int x = 0; x < getWidth(); x += xStep) {
-					g.drawLine(x, getHeight() / 2 - 10, x, getHeight() / 2 + 10);
-					String valString = String.format("%.2f", smallestX
-							+ (rangeX * ((double) x / getWidth())));
-					int valStringWidth = g.getFontMetrics().stringWidth(valString);
-					g.drawString(valString, x - valStringWidth / 2, getHeight() / 2 - 25);
+					g.drawLine(0, getHeight() / 2, getWidth(), getHeight() / 2);
+					g.drawLine(getWidth() / 2, 0, getWidth() / 2, getHeight());
+
+					for (int x = 0; x < getWidth(); x += xStep) {
+						g.drawLine(x, getHeight() / 2 - 10, x, getHeight() / 2 + 10);
+						String valString = String.format("%.2f", smallestX
+								+ (rangeX * ((double) x / getWidth())));
+						int valStringWidth = g.getFontMetrics().stringWidth(valString);
+						g.drawString(valString, x - valStringWidth / 2,
+								getHeight() / 2 - 25);
+					}
+
+					for (int y = 0; y < getHeight(); y += yStep) {
+						g.drawLine(getWidth() / 2 - 10, y, getWidth() / 2 + 10, y);
+						String valString = String.format("%.2f", smallestY + rangeY
+								* ((double) y / getHeight()));
+						int valStringWidth = g.getFontMetrics().stringWidth(valString);
+						g.drawString(valString, getWidth() / 2 - 15 - valStringWidth, y);
+					}
+
+					g.drawLine(0, (int) mouseY, getWidth(), (int) mouseY);
+					g.drawLine((int) mouseX, 0, (int) mouseX, getHeight());
+					g.drawString(
+							String.format("%.2f", mouseX / getWidth() * rangeX
+									+ smallestX)
+									+ " x "
+									+ String.format("%.2f", mouseY / getHeight() * rangeY
+											+ smallestY), (int) mouseX - 40,
+							(int) mouseY - 40);
+
+					g.setFont(fatFont);
+
+					for (Element<Double> e : elements) {
+						int x = (int) Math
+								.round(((e.getAttribute(xFeatureIndex) - smallestX)
+										/ rangeX * getWidth()));
+						int y = (int) Math
+								.round(((e.getAttribute(yFeatureIndex) - smallestY)
+										/ rangeY * getHeight()));
+						int c = e.getCategory();
+						g.fillOval(x - ovalRadius, y - ovalRadius, ovalRadius * 2,
+								ovalRadius * 2);
+						g.drawString(c + "", x - ovalRadius - 5, y - ovalRadius - 5);
+					}
+				} else {
+					g.drawString("Unable to visualize,  sry", 100, 100);
 				}
-
-				for (int y = 0; y < getHeight(); y += yStep) {
-					g.drawLine(getWidth() / 2 - 10, y, getWidth() / 2 + 10, y);
-					String valString = String.format("%.2f", smallestY + rangeY
-							* ((double) y / getHeight()));
-					int valStringWidth = g.getFontMetrics().stringWidth(valString);
-					g.drawString(valString, getWidth() / 2 - 15 - valStringWidth, y);
-				}
-
-				g.drawLine(0, (int) mouseY, getWidth(), (int) mouseY);
-				g.drawLine((int) mouseX, 0, (int) mouseX, getHeight());
-				g.drawString(
-						String.format("%.2f", mouseX / getWidth() * rangeX + smallestX)
-								+ " x "
-								+ String.format("%.2f", mouseY / getHeight() * rangeY
-										+ smallestY), (int) mouseX - 40,
-						(int) mouseY - 40);
-
-				g.setFont(fatFont);
-
-				for (Element e : elements) {
-					int x = (int) Math.round(((e.getAttribute(xFeatureIndex) - smallestX)
-							/ rangeX * getWidth()));
-					int y = (int) Math.round(((e.getAttribute(yFeatureIndex) - smallestY)
-							/ rangeY * getHeight()));
-					int c = e.getCategory();
-					g.fillOval(x - ovalRadius, y - ovalRadius, ovalRadius * 2,
-							ovalRadius * 2);
-					g.drawString(c + "", x - ovalRadius - 5, y - ovalRadius - 5);
-				}
-
 			};
 		};
 
@@ -329,7 +363,8 @@ public class RForestUI extends JFrame {
 			rangeX = 0;
 			rangeY = 0;
 			double midX = 0, midY = 0;
-			for (Element e : elements) {
+			if(!type.equals(Double.class)) return;
+			for (Element<Double> e : elements) {
 				double xVal = e.getAttribute(xFeatureIndex);
 				double yVal = e.getAttribute(yFeatureIndex);
 				smallestX = smallestX > xVal ? xVal : smallestX;
@@ -367,30 +402,32 @@ public class RForestUI extends JFrame {
 			DefaultMutableTreeNode root = new DefaultMutableTreeNode("All Splits");
 			allResults = n.getSample().calcAllSplits();
 
-			for (SplitResult sr : allResults) {
+			for (SplitResult<Double> sr : allResults) {
 				DefaultMutableTreeNode srNode = new DefaultMutableTreeNode("["
 						+ sr.getSplitPoint().getFeatureIndex() + "] -> "
 						+ sr.getSplitPoint().getSplitValue() + " => " + sr.getImpurity());
-				
-				DefaultMutableTreeNode leftDataNode = new DefaultMutableTreeNode("LEFT ["+sr.getLeftSet().getElements().size()+"]");
-				for (Element e : sr.getLeftSet().getElements())
+
+				DefaultMutableTreeNode leftDataNode = new DefaultMutableTreeNode("LEFT ["
+						+ sr.getLeftSet().getElements().size() + "]");
+				for (Element<Double> e : sr.getLeftSet().getElements())
 					leftDataNode.add(new DefaultMutableTreeNode(e));
-				
-				DefaultMutableTreeNode rightDataNode = new DefaultMutableTreeNode("RIGHT ["+sr.getRightSet().getElements().size()+"]");
-				for (Element e : sr.getRightSet().getElements())
+
+				DefaultMutableTreeNode rightDataNode = new DefaultMutableTreeNode(
+						"RIGHT [" + sr.getRightSet().getElements().size() + "]");
+				for (Element<Double> e : sr.getRightSet().getElements())
 					rightDataNode.add(new DefaultMutableTreeNode(e));
 
 				srNode.add(leftDataNode);
 				srNode.add(rightDataNode);
-				
+
 				root.add(srNode);
 			}
-			
+
 			tree = new JTree(root);
 
 			add(new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS), BorderLayout.CENTER);
-			
+
 			setSize(640, 480);
 			setTitle(n.nodeID + " - All Splits");
 			setVisible(true);

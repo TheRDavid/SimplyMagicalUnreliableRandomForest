@@ -6,30 +6,33 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
-public class RForest {
-	private ArrayList<RTree> trees = new ArrayList<>();
-	private DataSet data;
+public class RForest<T extends Comparable<T>> {
+	private ArrayList<RTree<T>> trees = new ArrayList<>();
+	private DataSet<T> data;
+	public enum DataMode {SAVE_ALL_THE_DATA, HURRY_UP_M8}
+	public DataMode mode;
 
-	public RForest(DataSet d, float subSampleSize, int numSubSamples) {
+	public RForest(DataSet<T> d, float subSampleSize, int numSubSamples, DataMode mode) {
 		data = d;
-		DataSet[] subs = data.generateSubsamples(numSubSamples,
+		this.mode = mode;
+		DataSet<T>[] subs = data.generateSubsamples(numSubSamples,
 				(int) (data.size() * subSampleSize));
-		for (DataSet sub : subs) {
-			trees.add(new RTree(sub, data.getFeatureSampleSlice()));
+		for (DataSet<T> sub : subs) {
+			trees.add(new RTree<T>(sub, data.getFeatureSampleSlice(), mode));
 		}
 	}
 
-	public ArrayList<RTree> getTrees() {
+	public ArrayList<RTree<T>> getTrees() {
 		return trees;
 	}
 
-	public DataSet getData() {
+	public DataSet<T> getData() {
 		return data;
 	}
 
-	public int categorize(Element element) {
+	public int categorize(Element<T> element) {
 		int[] vote = new int[data.categoryCount()];
-		for (RTree tree : trees) {
+		for (RTree<T> tree : trees) {
 			int voice = tree.categorize(element);
 			vote[voice]++;
 			System.out.println("tree " + tree.treeID + " votes for " + voice);
