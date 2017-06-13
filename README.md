@@ -3,4 +3,4 @@
 ![smurf](res/smurf.png)
 
 
-*please hire us*
+*please hire us.*
