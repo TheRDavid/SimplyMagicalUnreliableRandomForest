@@ -1,4 +1,8 @@
-# SimplyMagicalUnreliableRandomForest
+# Simply
+# Magical
+# Unreliable
+# Random
+# Forest
 
 ![smurf](res/smurf.png)
 
