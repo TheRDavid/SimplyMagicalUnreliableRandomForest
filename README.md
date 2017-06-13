@@ -1,8 +1,4 @@
-**S**imply<br />
-**M**agical<br />
-**U**nreliable<br />
-**R**andom<br />
-**F**orest
+# Simply Magical Unreliable Random Forest
 
 
 ![smurf](res/smurf.png)
