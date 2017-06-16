@@ -1,4 +1,4 @@
-package ir;
+package forest;
 
 public class Element<T extends Comparable<T>>{
 	private T[] attributes;

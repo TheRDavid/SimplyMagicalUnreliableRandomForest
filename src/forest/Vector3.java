@@ -1,4 +1,4 @@
-package ir;
+package forest;
 
 public class Vector3 implements Comparable<Vector3> {
 	private double x, y, z;

@@ -1,12 +1,11 @@
-package ir;
-
-import ir.DataSet.SplitResult;
-import ir.RForest.DataMode;
+package forest;
 
 import java.awt.HeadlessException;
 import java.util.HashMap;
 import java.util.Map;
 
+import forest.DataSet.SplitResult;
+import forest.RForest.DataMode;
 import test.BasicTest;
 
 public class RTree<T extends Comparable<T>> {

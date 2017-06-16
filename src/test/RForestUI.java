@@ -1,13 +1,5 @@
 package test;
 
-import ir.DataSet.SplitResult;
-import ir.Element;
-import ir.RForest;
-import ir.RTree;
-import ir.RTree.RNode;
-import ir.SplitPoint;
-import ir.Vector3;
-
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -43,6 +35,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+
+import forest.Element;
+import forest.RForest;
+import forest.RTree;
+import forest.SplitPoint;
+import forest.Vector3;
+import forest.DataSet.SplitResult;
+import forest.RTree.RNode;
 
 public class RForestUI<T extends Comparable<T>> extends JFrame {
 

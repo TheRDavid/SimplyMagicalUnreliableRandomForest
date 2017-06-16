@@ -1,9 +1,6 @@
 package test;
 
-import ir.DataSet;
-import ir.Element;
-import ir.RForest;
-import ir.Vector3;
+import server.Server;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,19 +17,47 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-public class BasicTest {
-	public static void main(String[] args) {
+import forest.DataSet;
+import forest.Element;
+import forest.RForest;
+import forest.Vector3;
 
+public class BasicTest {
+	
+	public enum Emotions { ANGER, JOY, FEAR, CONTEMPT, SADNESS, DISGUST, SURPRISE };
+	
+	public static void main(String[] args) {
+		
 		System.out.println("START");
+		
+		//System.out.println( Emotions.ANGER+" "+Emotions.ANGER.name()+" "+Emotions.ANGER.ordinal());
+		
 		//printData();
 		//fileTest();
 		//randomTest();
 		//staticTest0();
 		//staticTest1();
-		emotionTest();
+		
+		
+		RForest forest = emotionTest();
+		
+		Server server = new Server(1337, forest);
+		new Thread(server).start();
+		
+		
+		
+		try
+		{
+			Thread.sleep(500);
+		} catch (InterruptedException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
-	private static void emotionTest() {
+	private static RForest emotionTest() {
 		int landmarkPoints = 59;
 
 		File resDir = new File("res");
@@ -45,26 +70,30 @@ public class BasicTest {
 		});
 
 		ArrayList<Element<Vector3>> elements = new ArrayList<>();
+		
+		
 
 		for (File resFile : allResFiles) {
 			try {
 				BufferedReader buffReader = new BufferedReader(new FileReader(resFile));
 
-				int category = 0;
-				if (resFile.getName().contains("anger"))
-					category = 0;
-				else if (resFile.getName().contains("joy"))
-					category = 1;
-				else if (resFile.getName().contains("fear"))
-					category = 2;
-				else if (resFile.getName().contains("contempt"))
-					category = 3;
-				else if (resFile.getName().contains("sadness"))
-					category = 4;
-				else if (resFile.getName().contains("disgust"))
-					category = 5;
-				else if (resFile.getName().contains("surprise"))
-					category = 6;
+				String name = resFile.getName();
+				name = name.substring(name.indexOf(".")+1);
+				name = name.substring(0, name.indexOf("."));
+				
+				int category = -1;
+				for (Emotions ems : Emotions.values()) {
+					 if (ems.name().equalsIgnoreCase(name)) {
+						 category = ems.ordinal();
+						 break;
+					 }
+				}
+				
+				if (category == -1) {
+					System.out.println("Not correct emotion found, skipping");
+					continue;
+				}
+
 				String line;
 				while ((line = buffReader.readLine()) != null) {
 					Vector3[] attribs = new Vector3[landmarkPoints * landmarkPoints];
@@ -107,6 +136,7 @@ public class BasicTest {
 
 		RForestUI<Vector3> ui = new RForestUI<Vector3>(forest);
 		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		return forest;
 	}
 
 	private static void printData() {
@@ -146,6 +176,7 @@ public class BasicTest {
 			RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
 					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
 
+
 			RForestUI ui = new RForestUI(forest);
 			ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		} catch (IOException e) {
@@ -165,11 +196,11 @@ public class BasicTest {
 
 	private static void randomTest() {
 		float subSampleSize = 0.1f;
-		int numSubSamples = 5, features = 30;
-		float featureSampleSlice = 0.25f;
+		int numSubSamples = 50, features = 50;
+		float featureSampleSlice = 0.5f;
 
 		double maxVal = 200, minVal = -200;
-		int numCats = 5;
+		int numCats = 10;
 		int numElements = 10000;
 		final JDialog d = new JDialog();
 		new Thread(new Runnable() {
@@ -207,4 +238,4 @@ public class BasicTest {
 		for (Element e : data)
 			System.out.println(e);
 	}
-}
+} 

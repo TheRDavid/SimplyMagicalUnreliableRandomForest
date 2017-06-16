@@ -1,4 +1,4 @@
-package ir;
+package forest;
 public class SplitPoint<T extends Comparable<T>> {
 	private int featureIndex;
 	private T splitValue;
