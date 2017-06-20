@@ -124,8 +124,8 @@ public class BasicTest {
 		}
 		System.out.println(elements.size());
 		
-		float subSampleSize = .1f;
-		int numSubSamples = 1, features = 59 * 59;
+		float subSampleSize = .2f;
+		int numSubSamples = 20, features = 59 * 59;
 		float featureSampleSlice = 1f;
 
 		DataSet<Vector3> dataSet = new DataSet<Vector3>(features, featureSampleSlice,

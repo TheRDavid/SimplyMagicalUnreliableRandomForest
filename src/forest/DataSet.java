@@ -1,5 +1,6 @@
 package forest;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -8,18 +9,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DataSet<T extends Comparable<T>> {
+public class DataSet<T extends Comparable<T>> implements Serializable {
 
 	private ArrayList<Element<T>> elements;
 	private HashMap<Integer, Integer> categories;
-	private int features, absoluteFeatureSubSampleSize;
+	private int numFeatures, absoluteFeatureSubSampleSize;
 	private float featureSampleSlice;
 	private int[] featureSubSet;
 
 	public DataSet(int f, float fss, ArrayList<Element<T>> data) {
-		features = f;
+		numFeatures = f;
 		featureSampleSlice = fss;
-		absoluteFeatureSubSampleSize = (int) (featureSampleSlice * features);
+		absoluteFeatureSubSampleSize = (int) (featureSampleSlice * numFeatures);
 		elements = new ArrayList<Element<T>>(data); // copy, the list itself must not be accessible
 
 		categories = generateCategoryMap(elements);
@@ -54,7 +55,7 @@ public class DataSet<T extends Comparable<T>> {
 					.add(this.elements.get((int) (Math.random() * this.elements.size())));
 			size--;
 		}
-		return new DataSet<T>(features, featureSampleSlice, randomData);
+		return new DataSet<T>(numFeatures, featureSampleSlice, randomData);
 	}
 
 	public SplitResult<T>[] calcAllSplits() {
@@ -110,8 +111,8 @@ public class DataSet<T extends Comparable<T>> {
 		//System.out.println("On the left: " + leftElements.size());
 		//System.out.println("On the right: " + rightElements.size());
 
-		ret[0] = new DataSet<T>(features, featureSampleSlice, leftElements);
-		ret[1] = new DataSet<T>(features, featureSampleSlice, rightElements);
+		ret[0] = new DataSet<T>(numFeatures, featureSampleSlice, leftElements);
+		ret[1] = new DataSet<T>(numFeatures, featureSampleSlice, rightElements);
 
 		return ret;
 	}
@@ -120,7 +121,7 @@ public class DataSet<T extends Comparable<T>> {
 		Set<Integer> featureSet = new HashSet<>();
 		int[] returnFeatures = new int[absoluteFeatureSubSampleSize];
 		while (featureSet.size() < absoluteFeatureSubSampleSize) {
-			featureSet.add((int) (Math.random() * features));
+			featureSet.add((int) (Math.random() * numFeatures));
 		}
 		int idx = 0;
 		for (int i : featureSet) {
@@ -227,7 +228,7 @@ public class DataSet<T extends Comparable<T>> {
 	}
 
 	public int featureCount() {
-		return features;
+		return numFeatures;
 	}
 
 	public float getFeatureSampleSlice() {

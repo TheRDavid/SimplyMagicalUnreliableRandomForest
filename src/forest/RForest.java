@@ -11,17 +11,22 @@ public class RForest<T extends Comparable<T>> {
 	private DataSet<T> data;
 	public enum DataMode {SAVE_ALL_THE_DATA, HURRY_UP_M8}
 	public DataMode mode;
+	private DataSet<T>[] subs;
 
 	public RForest(DataSet<T> d, float subSampleSize, int numSubSamples, DataMode mode) {
 		data = d;
 		this.mode = mode;
-		DataSet<T>[] subs = data.generateSubsamples(numSubSamples,
+		subs = data.generateSubsamples(numSubSamples,
 				(int) (data.size() * subSampleSize));
+	}
+
+	public void grow()
+	{
 		for (DataSet<T> sub : subs) {
 			trees.add(new RTree<T>(sub, data.getFeatureSampleSlice(), mode));
 		}
 	}
-
+	
 	public ArrayList<RTree<T>> getTrees() {
 		return trees;
 	}

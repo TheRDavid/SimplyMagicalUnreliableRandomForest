@@ -1,5 +1,8 @@
 package forest;
-public class SplitPoint<T extends Comparable<T>> {
+
+import java.io.Serializable;
+
+public class SplitPoint<T extends Comparable<T>>  implements Serializable{
 	private int featureIndex;
 	private T splitValue;
 

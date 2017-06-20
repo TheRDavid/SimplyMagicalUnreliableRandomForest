@@ -1,6 +1,8 @@
 package forest;
 
-public class Vector3 implements Comparable<Vector3> {
+import java.io.Serializable;
+
+public class Vector3 implements Comparable<Vector3>, Serializable {
 	private double x, y, z;
 
 	public Vector3(double x, double y, double z) {

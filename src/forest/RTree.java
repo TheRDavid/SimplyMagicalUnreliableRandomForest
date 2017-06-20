@@ -1,14 +1,18 @@
 package forest;
 
-import java.awt.HeadlessException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import forest.DataSet.SplitResult;
 import forest.RForest.DataMode;
-import test.BasicTest;
 
-public class RTree<T extends Comparable<T>> {
+public class RTree<T extends Comparable<T>> implements Serializable{
 
 	private DataSet<T> sample;
 	private RNode<T> root;
@@ -23,7 +27,7 @@ public class RTree<T extends Comparable<T>> {
 		root = new RNode<T>(s, featureSampleSlice);
 	}
 
-	public class RNode<T extends Comparable<T>> {
+	public class RNode<T extends Comparable<T>> implements Serializable {
 		private SplitPoint<T> splitPoint;
 		private RNode<T> left = null, right = null;
 		private DataSet<T> sample;
@@ -110,6 +114,29 @@ public class RTree<T extends Comparable<T>> {
 
 	public int categorize(Element<T> element) {
 		return root.categorize(element);
+	}
+
+	public void saveAs(String name)
+	{
+		try
+		{
+			FileOutputStream fos = new FileOutputStream(new File(name));
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(this);
+			oos.flush();
+			fos.flush();
+			oos.close();
+			fos.close();
+		} catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 }
