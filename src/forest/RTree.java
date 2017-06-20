@@ -21,10 +21,10 @@ public class RTree<T extends Comparable<T>> implements Serializable{
 	protected static long NODE_ID = 0, TREE_ID = 0;
 
 	public RTree(DataSet<T> s, float featureSampleSlice, RForest.DataMode mode) {
-		System.out.println("Tree #"+treeID+" @ " + NODE_ID + " Nodes");
 		dataMode = mode;
 		if (mode == DataMode.SAVE_ALL_THE_DATA) sample = s;
 		root = new RNode<T>(s, featureSampleSlice);
+		System.out.println("Tree #"+treeID+" @ " + NODE_ID + " Nodes");
 	}
 
 	public class RNode<T extends Comparable<T>> implements Serializable {
