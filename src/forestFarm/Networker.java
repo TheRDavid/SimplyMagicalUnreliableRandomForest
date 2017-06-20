@@ -1,9 +1,13 @@
 package forestFarm;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 public class Networker implements Runnable
 {
@@ -18,6 +22,23 @@ public class Networker implements Runnable
 		try
 		{
 			server = new ServerSocket(port);
+			String addresses = "";
+			Enumeration en = NetworkInterface.getNetworkInterfaces();
+			while(en.hasMoreElements())
+			{
+			    NetworkInterface n = (NetworkInterface) en.nextElement();
+			    Enumeration ee = n.getInetAddresses();
+			    while (ee.hasMoreElements())
+			    {
+			        InetAddress i = (InetAddress) ee.nextElement();
+			        if (!i.isLoopbackAddress() && i instanceof Inet4Address) {
+			        	System.out.println(i.getHostAddress());
+			        	if (!addresses.isEmpty()) addresses+= " or ";
+			        	addresses += i.getHostAddress();
+			        }
+			    }
+			}
+			System.out.println("Server: Started @ "+addresses+" on port "+port);
 			server.setSoTimeout(0);
 			new Thread(this).start();
 		} catch (IOException e)
@@ -34,6 +55,8 @@ public class Networker implements Runnable
 		{
 			try
 			{
+				System.out.println(server.isClosed());
+				System.out.println("Waiting for acceptance...");
 				new NetworkListener(server.accept());
 			} catch (IOException e)
 			{

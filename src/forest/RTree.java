@@ -116,11 +116,11 @@ public class RTree<T extends Comparable<T>> implements Serializable{
 		return root.categorize(element);
 	}
 
-	public void saveAs(String name)
+	public void saveAs(File f)
 	{
 		try
 		{
-			FileOutputStream fos = new FileOutputStream(new File(name));
+			FileOutputStream fos = new FileOutputStream(f);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			oos.writeObject(this);
 			oos.flush();
