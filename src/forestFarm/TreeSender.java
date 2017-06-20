@@ -116,7 +116,7 @@ public class TreeSender {
 						if (forest.getTrees().size() > currentTree) {
 							RTree<Vector3> newestTree = forest.getTrees().get(currentTree);
 							File newFile = new File("res//"+currentTree++ + ".rt");
-							System.out.println("Save Tree @" + newFile.getAbsolutePath());
+							System.out.println("Saving & Sending Tree");
 							newestTree.saveAs(newFile);
 							try {
 								OutputStream os = socket.getOutputStream();
