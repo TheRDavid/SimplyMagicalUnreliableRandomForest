@@ -36,7 +36,7 @@ public class RTree<T extends Comparable<T>> implements Serializable{
 		public final long nodeID = NODE_ID++;
 
 		public RNode(DataSet<T> set, float featureSampleSlice) {
-			System.out.println("Node #"+nodeID);
+			//System.out.println("Node #"+nodeID);
 			if (RTree.this.dataMode == DataMode.SAVE_ALL_THE_DATA)  sample = set;
 
 			HashMap<Integer, Integer> categories = set.generateCategoryMap(set

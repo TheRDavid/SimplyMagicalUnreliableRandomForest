@@ -23,35 +23,28 @@ import forest.RTree;
 import forest.Vector3;
 import test.BasicTest.Emotions;
 
-public class TreeSender
-{
+public class TreeSender {
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		new TreeSender();
 	}
 
-	public TreeSender()
-	{
+	public TreeSender() {
 		int landmarkPoints = 59;
 
 		File resDir = new File("res");
-		File[] allResFiles = resDir.listFiles(new FileFilter()
-		{
+		File[] allResFiles = resDir.listFiles(new FileFilter() {
 
 			@Override
-			public boolean accept(File arg0)
-			{
+			public boolean accept(File arg0) {
 				return arg0.getAbsolutePath().endsWith(".csv");
 			}
 		});
 
 		ArrayList<Element<Vector3>> elements = new ArrayList<>();
 
-		for (File resFile : allResFiles)
-		{
-			try
-			{
+		for (File resFile : allResFiles) {
+			try {
 				BufferedReader buffReader = new BufferedReader(new FileReader(resFile));
 
 				String name = resFile.getName();
@@ -59,30 +52,25 @@ public class TreeSender
 				name = name.substring(0, name.indexOf("."));
 
 				int category = -1;
-				for (Emotions ems : Emotions.values())
-				{
-					if (ems.name().equalsIgnoreCase(name))
-					{
+				for (Emotions ems : Emotions.values()) {
+					if (ems.name().equalsIgnoreCase(name)) {
 						category = ems.ordinal();
 						break;
 					}
 				}
 
-				if (category == -1)
-				{
+				if (category == -1) {
 					System.out.println("Not correct emotion found, skipping");
 					continue;
 				}
 
 				String line;
-				while ((line = buffReader.readLine()) != null)
-				{
+				while ((line = buffReader.readLine()) != null) {
 					Vector3[] attribs = new Vector3[landmarkPoints * landmarkPoints];
 					int attribIdx = 0;
 					StringTokenizer tokenizer = new StringTokenizer(line, ";");
 					String vec;
-					while (tokenizer.hasMoreElements())
-					{
+					while (tokenizer.hasMoreElements()) {
 						vec = tokenizer.nextToken();
 						String[] vals = vec.split(",");
 						attribs[attribIdx++] = new Vector3(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]),
@@ -96,12 +84,10 @@ public class TreeSender
 					elements.add(new Element<Vector3>(attribs, category));
 				}
 
-			} catch (FileNotFoundException e)
-			{
+			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (IOException e)
-			{
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -114,47 +100,42 @@ public class TreeSender
 		System.out.println(dataSet.generateCategoryMap(elements).size());
 		RForest<Vector3> forest = new RForest<Vector3>(dataSet, Networker.forestSettings.getSubSampleSize(),
 				Networker.forestSettings.getNumTrees(), RForest.DataMode.HURRY_UP_M8);
-		new Thread(new Runnable()
-		{
+		new Thread(new Runnable() {
 
 			@Override
-			public void run()
-			{
+			public void run() {
 				Socket socket;
-				try
-				{
+				try {
 					socket = new Socket(Networker.ip, Networker.port);
 					int currentTree = 0;
-					while (currentTree < Networker.forestSettings.getNumTrees())
-					{
-						//System.out.println(currentTree + " - " + Networker.forestSettings.getNumTrees() + " - "
-						//		+ forest.getTrees().size());
-						if (forest.getTrees().size() > currentTree)
-						{
+					while (currentTree < Networker.forestSettings.getNumTrees()) {
+						Thread.sleep(100);
+					//	 System.out.println(currentTree + " - " +
+					//	 Networker.forestSettings.getNumTrees() + " - "
+					//	 + forest.getTrees().size());
+						if (forest.getTrees().size() > currentTree) {
 							RTree<Vector3> newestTree = forest.getTrees().get(currentTree);
-							File newFile = new File(currentTree++ + ".rt");
+							File newFile = new File("res//"+currentTree++ + ".rt");
 							System.out.println("Save Tree @" + newFile.getAbsolutePath());
 							newestTree.saveAs(newFile);
-							OutputStream os;
-							try
-							{
-								os = socket.getOutputStream();
+							try {
+								OutputStream os = socket.getOutputStream();
 								ObjectOutputStream oos = new ObjectOutputStream(os);
 								oos.writeObject(newestTree);
-								os.flush();
-							} catch (IOException e)
-							{
+								oos.flush();
+							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 						}
 					}
-				} catch (UnknownHostException e1)
-				{
+				} catch (UnknownHostException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-				} catch (IOException e1)
-				{
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
