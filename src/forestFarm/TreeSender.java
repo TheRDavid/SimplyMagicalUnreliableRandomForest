@@ -99,7 +99,7 @@ public class TreeSender {
 				Networker.forestSettings.getFeatureSampleSize(), elements);
 		System.out.println(dataSet.generateCategoryMap(elements).size());
 		RForest<Vector3> forest = new RForest<Vector3>(dataSet, Networker.forestSettings.getSubSampleSize(),
-				Networker.forestSettings.getNumTrees(), RForest.DataMode.SAVE_ALL_THE_DATA);
+				Networker.forestSettings.getNumTrees(), RForest.DataMode.HURRY_UP_M8);
 		new Thread(new Runnable() {
 
 			@Override

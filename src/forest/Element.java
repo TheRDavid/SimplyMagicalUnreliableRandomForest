@@ -1,6 +1,8 @@
 package forest;
 
-public class Element<T extends Comparable<T>>{
+import java.io.Serializable;
+
+public class Element<T extends Comparable<T>> implements Serializable{
 	private T[] attributes;
 	private int category = -1; // used to determine best split points with the learning data
 	private static final int maxFeaturePrints = 25;
