@@ -26,16 +26,13 @@ import test.BasicTest.Emotions;
 public class TreeSender
 {
 
-	private String ip;
-
 	public static void main(String[] args)
 	{
-
+		new TreeSender();
 	}
 
-	public TreeSender(String ip)
+	public TreeSender()
 	{
-		this.ip = ip;
 		int landmarkPoints = 59;
 
 		File resDir = new File("res");

@@ -18,6 +18,7 @@ public class Networker implements Runnable
 		try
 		{
 			server = new ServerSocket(port);
+			server.setSoTimeout(0);
 			new Thread(this).start();
 		} catch (IOException e)
 		{
