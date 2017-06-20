@@ -9,8 +9,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-public class Networker implements Runnable
-{
+	public class Networker implements Runnable
+	{
 	private ServerSocket server;
 	public static final ForestSettings forestSettings = new ForestSettings(0.25f, 1, 3, 59*59);
 	public static final int port = 2731;
@@ -55,7 +55,6 @@ public class Networker implements Runnable
 		{
 			try
 			{
-				System.out.println(server.isClosed());
 				System.out.println("Waiting for acceptance...");
 				new NetworkListener(server.accept());
 			} catch (IOException e)

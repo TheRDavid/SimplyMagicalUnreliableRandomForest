@@ -33,34 +33,38 @@ public class NetworkListener implements Runnable
 	{
 		while (true)
 		{
+			System.out.println("Listening for another tree");
 			try
 			{
 				Thread.sleep(1000);
 
 				int current = 0;
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
-				FileOutputStream fileOutputStream = null;
-				BufferedOutputStream bufferedOutputStream = null;
-				byte[] byteArray = new byte[6022386];
-
-				InputStream inputStream = client.getInputStream();
-				fileOutputStream = new FileOutputStream(dir.getAbsolutePath() + "\\" + treeNum++ + ".rt");
-				bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-				bytesRead = inputStream.read(byteArray, 0, byteArray.length);
-
-				current = bytesRead;
-				do
+				while (inFromClient.ready())
 				{
-					bytesRead = inputStream.read(byteArray, current, (byteArray.length - current));
-					if (bytesRead >= 0)
-						current += bytesRead;
-				} while (bytesRead > -1);
-				bufferedOutputStream.write(byteArray, 0, current);
-				System.out.println("Received Tree #" + treeNum);
-				bufferedOutputStream.flush();
-				bufferedOutputStream.close();
-				inFromClient.close();
+					byte[] byteArray = new byte[6022386];
+
+					InputStream inputStream = client.getInputStream();
+					FileOutputStream fileOutputStream = new FileOutputStream(
+							dir.getAbsolutePath() + "\\" + treeNum++ + ".rt");
+					BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+					bytesRead = inputStream.read(byteArray, 0, byteArray.length);
+
+					System.out.println("GOT ONE");
+
+					current = bytesRead;
+					do
+					{
+						bytesRead = inputStream.read(byteArray, current, (byteArray.length - current));
+						if (bytesRead >= 0)
+							current += bytesRead;
+					} while (bytesRead > -1);
+					bufferedOutputStream.write(byteArray, 0, current);
+					System.out.println("Received Tree #" + treeNum);
+					bufferedOutputStream.flush();
+					bufferedOutputStream.close();
+					inFromClient.close();
+				}
 			} catch (InterruptedException e)
 			{
 				// TODO Auto-generated catch block

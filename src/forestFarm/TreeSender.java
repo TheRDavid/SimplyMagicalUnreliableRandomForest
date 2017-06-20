@@ -127,12 +127,14 @@ public class TreeSender
 					int currentTree = 0;
 					while (currentTree < Networker.forestSettings.getNumTrees())
 					{
+						System.out.println(currentTree + " - " + Networker.forestSettings.getNumTrees() + " - "
+								+ forest.getTrees().size());
 						if (forest.getTrees().size() > currentTree)
 						{
 							RTree<Vector3> newestTree = forest.getTrees().get(currentTree);
 							File newFile = new File(currentTree++ + ".rt");
 							newestTree.saveAs(newFile);
-							System.out.println("Save Tree @"+newFile.getAbsolutePath());
+							System.out.println("Save Tree @" + newFile.getAbsolutePath());
 							OutputStream os;
 							try
 							{
