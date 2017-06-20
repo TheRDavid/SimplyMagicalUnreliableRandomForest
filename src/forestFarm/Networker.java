@@ -55,7 +55,6 @@ import java.util.Enumeration;
 		{
 			try
 			{
-				System.out.println("Waiting for acceptance...");
 				new NetworkListener(server.accept());
 			} catch (IOException e)
 			{

@@ -127,8 +127,8 @@ public class TreeSender
 					int currentTree = 0;
 					while (currentTree < Networker.forestSettings.getNumTrees())
 					{
-						System.out.println(currentTree + " - " + Networker.forestSettings.getNumTrees() + " - "
-								+ forest.getTrees().size());
+						//System.out.println(currentTree + " - " + Networker.forestSettings.getNumTrees() + " - "
+						//		+ forest.getTrees().size());
 						if (forest.getTrees().size() > currentTree)
 						{
 							RTree<Vector3> newestTree = forest.getTrees().get(currentTree);
@@ -142,7 +142,6 @@ public class TreeSender
 								ObjectOutputStream oos = new ObjectOutputStream(os);
 								oos.writeObject(newestTree);
 								os.flush();
-								os.close();
 							} catch (IOException e)
 							{
 								// TODO Auto-generated catch block
