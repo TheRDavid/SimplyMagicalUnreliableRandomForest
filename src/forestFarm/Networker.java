@@ -13,7 +13,7 @@ import java.util.Enumeration;
 	{
 	private ServerSocket server;
 	public static final ForestSettings forestSettings = new ForestSettings(0.25f, 1, 3, 59*59);
-	public static final int port = 2731;
+	public static final int port = 4511;
 	public static final String ip = "172.20.171.18";
 	public static ArrayList<NetworkListener> networkListeners = new ArrayList<>();
 	
