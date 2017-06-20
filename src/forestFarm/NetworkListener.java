@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -26,8 +28,6 @@ public class NetworkListener implements Runnable
 		new Thread(this).start();
 	}
 
-	int bytesRead = 0;
-
 	@Override
 	public void run()
 	{
@@ -35,45 +35,29 @@ public class NetworkListener implements Runnable
 		{
 			try
 			{
-				Thread.sleep(1000);
+				ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
 
-				int current = 0;
-				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-				while (inFromClient.ready())
-				{
-					System.out.println("Listening for another tree...");
-					byte[] byteArray = new byte[6022386];
-
-					InputStream inputStream = client.getInputStream();
 					FileOutputStream fileOutputStream = new FileOutputStream(
-							dir.getAbsolutePath() + "\\" + treeNum++ + ".rt");
-					BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-					bytesRead = inputStream.read(byteArray, 0, byteArray.length);
+							dir.getAbsolutePath() + "\\" + treeNum + ".rt");
 
-					System.out.println("GOT ONE");
-
-					current = bytesRead;
-					do
-					{
-						bytesRead = inputStream.read(byteArray, current, (byteArray.length - current));
-						if (bytesRead >= 0)
-							current += bytesRead;
-					} while (bytesRead > -1);
-					bufferedOutputStream.write(byteArray, 0, current);
-					System.out.println("Received Tree #" + treeNum);
-					bufferedOutputStream.flush();
-					bufferedOutputStream.close();
-					inFromClient.close();
-				}
-			} catch (InterruptedException e)
+					ObjectOutputStream oos = new ObjectOutputStream(fileOutputStream);
+					System.out.println("tree " + treeNum++ + " from " + client.getInetAddress().getHostName());
+					oos.writeObject(ois.readObject());
+					oos.flush();
+			} catch (SocketException e)
+			{
+				// TODO Auto-generated catch block
+				System.out.println(client.getInetAddress().getHostName()+" disconnected");
+				break;
+			}catch (IOException e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (IOException e)
+			} catch (ClassNotFoundException e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			} 
 		}
 	}
 }
