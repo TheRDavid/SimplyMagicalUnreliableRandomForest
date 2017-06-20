@@ -33,7 +33,6 @@ public class NetworkListener implements Runnable
 	{
 		while (true)
 		{
-			System.out.println("Listening for another tree");
 			try
 			{
 				Thread.sleep(1000);
@@ -42,6 +41,7 @@ public class NetworkListener implements Runnable
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
 				while (inFromClient.ready())
 				{
+					System.out.println("Listening for another tree...");
 					byte[] byteArray = new byte[6022386];
 
 					InputStream inputStream = client.getInputStream();
