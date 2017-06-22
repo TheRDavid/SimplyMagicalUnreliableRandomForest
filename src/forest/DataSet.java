@@ -48,7 +48,7 @@ public class DataSet<T extends Comparable<T>> implements Serializable {
 		return sets;
 	}
 
-	private DataSet<T> randomSub(int size) {
+	public DataSet<T> randomSub(int size) {
 		ArrayList<Element<T>> randomData = new ArrayList<>();
 		while (size > 0) {
 			randomData

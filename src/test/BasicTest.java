@@ -132,7 +132,7 @@ public class BasicTest {
 				elements);
 		System.out.println(dataSet.generateCategoryMap(elements).size());
 		RForest<Vector3> forest = new RForest<Vector3>(dataSet, subSampleSize,
-				numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
+				numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA, true);
 
 		RForestUI<Vector3> ui = new RForestUI<Vector3>(forest);
 		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -174,7 +174,7 @@ public class BasicTest {
 			DataSet<Double> dataSet = new DataSet<Double>(features, featureSampleSlice,
 					elements);
 			RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
-					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
+					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA, true);
 
 
 			RForestUI ui = new RForestUI(forest);
@@ -226,7 +226,7 @@ public class BasicTest {
 
 		DataSet<Double> dataSet = new DataSet<Double>(features, featureSampleSlice, data);
 		RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
-				numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
+				numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA, true);
 
 		RForestUI ui = new RForestUI(forest);
 		ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
