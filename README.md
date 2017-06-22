@@ -1,4 +1,4 @@
-# Simply Magical Unreliable Random Forest
+# Simply Magical ~~Unreliable~~ Unbelievably Random Forest
 
 
 ![smurf](res/smurf.png)
