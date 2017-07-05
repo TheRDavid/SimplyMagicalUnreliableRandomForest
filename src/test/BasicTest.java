@@ -33,27 +33,12 @@ public class BasicTest {
 		//System.out.println( Emotions.ANGER+" "+Emotions.ANGER.name()+" "+Emotions.ANGER.ordinal());
 		
 		//printData();
-		//fileTest();
+		fileTest();
 		//randomTest();
 		//staticTest0();
 		//staticTest1();
 		
 		
-		RForest forest = emotionTest();
-		
-		Server server = new Server(1337, forest);
-		new Thread(server).start();
-		
-		
-		
-		try
-		{
-			Thread.sleep(500);
-		} catch (InterruptedException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 	}
 
@@ -155,7 +140,7 @@ public class BasicTest {
 
 	private static void fileTest() {
 
-		float subSampleSize = 0.25f;
+		float subSampleSize = 0.5f;
 		int numSubSamples = 50, features = 2;
 		float featureSampleSlice = 1f;
 
@@ -170,12 +155,12 @@ public class BasicTest {
 						Integer.parseInt(array[2]));
 				elements.add(e);
 			}
-
+		
 			DataSet<Double> dataSet = new DataSet<Double>(features, featureSampleSlice,
 					elements);
 			RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
 					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
-
+			forest.grow();
 
 			RForestUI ui = new RForestUI(forest);
 			ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
