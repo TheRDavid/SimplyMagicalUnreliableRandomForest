@@ -44,6 +44,8 @@ public class NetworkListener implements Runnable
 					System.out.println("tree " + treeNum++ + " from " + client.getInetAddress().getHostName());
 					oos.writeObject(ois.readObject());
 					oos.flush();
+					oos.close();
+					fileOutputStream.close();
 			} catch (SocketException e)
 			{
 				// TODO Auto-generated catch block

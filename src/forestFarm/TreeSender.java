@@ -1,12 +1,20 @@
 package forestFarm;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -14,7 +22,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import forest.DataSet;
 import forest.Element;
@@ -25,12 +35,113 @@ import test.BasicTest.Emotions;
 
 public class TreeSender {
 
+	private static final String serializedEmotionFileName = "smurf.emotions";
+	private static final int landmarkPoints = 59;
+
 	public static void main(String[] args) {
 		new TreeSender();
 	}
 
+	int i = 0;
+	ArrayList<Element<Vector3>> elements = null;
+	int treeCount = 0;
+
 	public TreeSender() {
-		int landmarkPoints = 59;
+		File resDir = new File("res");
+		if (!resDir.exists())
+			resDir.mkdir();
+		Socket socket = null;
+		try {
+			socket = new Socket(Networker.ip, Networker.port);
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+			System.exit(0);
+		}
+
+		File f = new File(serializedEmotionFileName);
+		if (f.exists() && !f.isDirectory()) {
+			elements = deserialize(f);
+		} else {
+			elements = serialize(f);
+		}
+
+		System.out.println("emotions loaded");
+
+		// -----
+
+		int cores = Runtime.getRuntime().availableProcessors();
+		System.out.println("having " + cores + " cores, yey!");
+
+		ConcurrentLinkedQueue<RTree<Vector3>> toSend = new ConcurrentLinkedQueue<>();
+		for (i = 0; i < cores; i++) {
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					System.out.println("Starting Thread");
+					DataSet<Vector3> dataSet = new DataSet<Vector3>(Networker.forestSettings.getNumFeatures(),
+							Networker.forestSettings.getFeatureSampleSize(), elements);
+					System.out.println("Done with Dataset");
+					RForest<Vector3> forest = new RForest<Vector3>(dataSet, Networker.forestSettings.getSubSampleSize(),
+							Networker.forestSettings.getNumTrees(), RForest.DataMode.HURRY_UP_M8, false);
+					System.out.println("Done with Forest init");
+
+					try {
+						while (true) {
+							Thread.sleep(100);
+							System.out.println("Thread " + i + " Building Tree #" + treeCount);
+							RTree<Vector3> newTree = forest.growNextSingleTree();
+							File newFile = new File("res//" + treeCount++ + ".rt");
+							newTree.saveAs(newFile);
+							toSend.add(newTree);
+						}
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+
+				}
+			}).start();
+		}
+
+		while (true) {
+			if (!toSend.isEmpty()) {
+				try {
+					OutputStream os = socket.getOutputStream();
+					ObjectOutputStream oos = new ObjectOutputStream(os);
+					System.out.println("Sending Tree");
+					oos.writeObject(toSend.poll());
+					oos.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					System.out.println("Could not send");
+					try {
+						socket = new Socket(Networker.ip, Networker.port);
+					} catch (UnknownHostException e1) {
+						System.out.println("Could not reconnect");
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						System.out.println("Could not reconnect");
+					}
+				}
+			} else
+				try {
+					Thread.sleep(150);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+		}
+
+	}
+
+	private static ArrayList<Element<Vector3>> serialize(File f) {
+
+		System.out.println("reading csv's and then serializing ...");
+
+		ArrayList<Element<Vector3>> elements = new ArrayList<>();
 
 		File resDir = new File("res");
 		File[] allResFiles = resDir.listFiles(new FileFilter() {
@@ -41,9 +152,8 @@ public class TreeSender {
 			}
 		});
 
-		ArrayList<Element<Vector3>> elements = new ArrayList<>();
-
 		for (File resFile : allResFiles) {
+			System.out.println("Reading " + resFile.getName());
 			try {
 				BufferedReader buffReader = new BufferedReader(new FileReader(resFile));
 
@@ -93,56 +203,57 @@ public class TreeSender {
 			}
 
 		}
+
 		System.out.println(elements.size() + " Elements found");
 
-		DataSet<Vector3> dataSet = new DataSet<Vector3>(Networker.forestSettings.getNumFeatures(),
-				Networker.forestSettings.getFeatureSampleSize(), elements);
-		System.out.println(dataSet.generateCategoryMap(elements).size());
-		RForest<Vector3> forest = new RForest<Vector3>(dataSet, Networker.forestSettings.getSubSampleSize(),
-				Networker.forestSettings.getNumTrees(), RForest.DataMode.HURRY_UP_M8);
-		new Thread(new Runnable() {
+		// serialize
+		OutputStream file = null;
+		OutputStream buffer = null;
+		ObjectOutput output = null;
 
-			@Override
-			public void run() {
-				Socket socket;
-				try {
-					socket = new Socket(Networker.ip, Networker.port);
-					int currentTree = 0;
-					while (currentTree < Networker.forestSettings.getNumTrees()) {
-						Thread.sleep(100);
-					//	 System.out.println(currentTree + " - " +
-					//	 Networker.forestSettings.getNumTrees() + " - "
-					//	 + forest.getTrees().size());
-						if (forest.getTrees().size() > currentTree) {
-							RTree<Vector3> newestTree = forest.getTrees().get(currentTree);
-							File newFile = new File("res//"+currentTree++ + ".rt");
-							System.out.println("Saving & Sending Tree");
-							newestTree.saveAs(newFile);
-							try {
-								OutputStream os = socket.getOutputStream();
-								ObjectOutputStream oos = new ObjectOutputStream(os);
-								oos.writeObject(newestTree);
-								oos.flush();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-					}
-				} catch (UnknownHostException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-
+		try {
+			file = new FileOutputStream(f);
+			buffer = new BufferedOutputStream(file);
+			output = new ObjectOutputStream(buffer);
+			output.writeObject(elements);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			try {
+				output.flush();
+				output.close();
+				buffer.close();
+				file.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		}).start();
-		forest.grow();
+		}
+
+		// end
+
+		return elements;
+	}
+
+	private static ArrayList<Element<Vector3>> deserialize(File f) {
+
+		System.out.println("deserializing ...");
+
+		ArrayList<Element<Vector3>> elements = null;
+
+		try {
+			InputStream file = new FileInputStream(f);
+			InputStream buffer = new BufferedInputStream(file);
+			ObjectInput input = new ObjectInputStream(buffer);
+			elements = (ArrayList<Element<Vector3>>) input.readObject();
+			file.close();
+			buffer.close();
+			input.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return elements;
 	}
 
 }

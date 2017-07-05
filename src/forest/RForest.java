@@ -9,24 +9,33 @@ import java.util.HashMap;
 public class RForest<T extends Comparable<T>> {
 	private ArrayList<RTree<T>> trees = new ArrayList<>();
 	private DataSet<T> data;
-	public enum DataMode {SAVE_ALL_THE_DATA, HURRY_UP_M8}
-	public DataMode mode;
-	private DataSet<T>[] subs;
 
-	public RForest(DataSet<T> d, float subSampleSize, int numSubSamples, DataMode mode) {
-		data = d;
-		this.mode = mode;
-		subs = data.generateSubsamples(numSubSamples,
-				(int) (data.size() * subSampleSize));
+	public enum DataMode {
+		SAVE_ALL_THE_DATA, HURRY_UP_M8
 	}
 
-	public void grow()
-	{
+	public DataMode mode;
+	private DataSet<T>[] subs;
+	private float subSampleSize;
+
+	public RForest(DataSet<T> d, float ssi, int numSubSamples, DataMode mode, boolean generateAllSubs) {
+		data = d;
+		subSampleSize = ssi;
+		this.mode = mode;
+		if (generateAllSubs)
+			subs = data.generateSubsamples(numSubSamples, (int) (data.size() * subSampleSize));
+	}
+
+	public void grow() {
 		for (DataSet<T> sub : subs) {
 			trees.add(new RTree<T>(sub, data.getFeatureSampleSlice(), mode));
 		}
 	}
-	
+
+	public RTree<T> growNextSingleTree() {
+		return new RTree<T>(data.randomSub((int) (data.size() * subSampleSize)), data.getFeatureSampleSlice(), mode);
+	}
+
 	public ArrayList<RTree<T>> getTrees() {
 		return trees;
 	}
@@ -44,13 +53,14 @@ public class RForest<T extends Comparable<T>> {
 		}
 		int currentCat = -1, currentVotes = -1;
 		for (int i = 0; i < vote.length; i++) {
-			System.out.println("Current category: "+currentCat+ " with "+currentVotes);
+			System.out.println("Current category: " + currentCat + " with " + currentVotes);
 			if (vote[i] > currentVotes) {
 				currentCat = i;
 				currentVotes = vote[i];
 			}
 		}
-		for(int i = 0; i < vote.length; i++) System.out.println(i+": "+vote[i]);
+		for (int i = 0; i < vote.length; i++)
+			System.out.println(i + ": " + vote[i]);
 		return currentCat;
 	}
 }
