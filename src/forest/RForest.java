@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
+import javax.swing.JOptionPane;
+
 public class RForest<T extends Comparable<T>> {
 	private ArrayList<RTree<T>> trees = new ArrayList<>();
 	private DataSet<T> data;
@@ -45,6 +47,7 @@ public class RForest<T extends Comparable<T>> {
 	}
 
 	public int categorize(Element<T> element) {
+		String res ="";
 		int[] vote = new int[data.categoryCount()];
 		for (RTree<T> tree : trees) {
 			int voice = tree.categorize(element);
@@ -59,8 +62,19 @@ public class RForest<T extends Comparable<T>> {
 				currentVotes = vote[i];
 			}
 		}
-		for (int i = 0; i < vote.length; i++)
+		
+		res+="\nRESULT: " + currentCat+"\n";
+		for(int i = 0; i < vote.length;i++)
+		{
+			res+="\ncategory #" + i + ": \t" + (int)(100.0*vote[i]/trees.size())+"%";
+		}
+			for (int i = 0; i < vote.length; i++)
 			System.out.println(i + ": " + vote[i]);
+		
+
+			
+		JOptionPane.showMessageDialog(null, res);
+		
 		return currentCat;
 	}
 }

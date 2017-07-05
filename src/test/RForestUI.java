@@ -64,10 +64,12 @@ public class RForestUI<T extends Comparable<T>> extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if(selectedNode.getParent()!=null)
-				new DataGraph(selectedNode.getSample().getElements(), selectedNode.getParent().getSplitPoint(),
-						selectedNode.getParent().getSplitPoint().getFeatureIndex() != 0 ? 0 : 1, selectedNode.nodeID);
-				else JOptionPane.showMessageDialog(null, "Nah...");
+				if (selectedNode.getParent() != null)
+					new DataGraph(selectedNode.getSample().getElements(), selectedNode.getParent().getSplitPoint(),
+							selectedNode.getParent().getSplitPoint().getFeatureIndex() != 0 ? 0 : 1,
+							selectedNode.nodeID);
+				else
+					JOptionPane.showMessageDialog(null, "Nah...");
 
 			}
 		});
@@ -75,11 +77,12 @@ public class RForestUI<T extends Comparable<T>> extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if(selectedNode.getParent()!=null)
-				new DataGraph(selectedNode.getSample().getElements(), selectedNode.getParent().getSplitPoint(),
-						selectedNode.getParent().getSplitPoint().getFeatureIndex() != 0 ? 0 : 1, selectedNode.nodeID,
-						randomForest.getData().getElements());
-				else JOptionPane.showMessageDialog(null, "Nah...");
+				if (selectedNode.getParent() != null)
+					new DataGraph(selectedNode.getSample().getElements(), selectedNode.getParent().getSplitPoint(),
+							selectedNode.getParent().getSplitPoint().getFeatureIndex() != 0 ? 0 : 1,
+							selectedNode.nodeID, randomForest.getData().getElements());
+				else
+					JOptionPane.showMessageDialog(null, "Nah...");
 
 			}
 		});
@@ -128,9 +131,9 @@ public class RForestUI<T extends Comparable<T>> extends JFrame {
 				selectedNode = null;
 				if (node == null)
 					System.out.println("Node is null");
-				if (!(node.getUserObject() instanceof RTree.RNode))
+				else if (!(node.getUserObject() instanceof RTree.RNode))
 					System.out.println("Node is no RNode");
-				if (node != null && node.getUserObject() instanceof RTree.RNode) {
+				else {
 					selectedNode = (RTree.RNode) node.getUserObject();
 				}
 
@@ -174,8 +177,7 @@ public class RForestUI<T extends Comparable<T>> extends JFrame {
 					}
 				}
 
-				JOptionPane.showMessageDialog(RForestUI.this,
-						"Category: " + forest.categorize(new Element<T>(attribs)));
+				forest.categorize(new Element<T>(attribs));
 
 			}
 		});
@@ -280,20 +282,12 @@ public class RForestUI<T extends Comparable<T>> extends JFrame {
 						double relative = distanceToSmallest / rangeY;
 						int p = (int) (relative * getHeight());
 
-						System.out.println("dist to smallest: " + distanceToSmallest);
-						System.out.println("relative: " + relative);
-						System.out.println("yP: " + p);
-
 						g.drawLine(0, p, getWidth(), p);
 
 					} else {
 						double distanceToSmallest = (double) splitPoint.getSplitValue() - (double) smallestX;
 						double relative = distanceToSmallest / rangeX;
 						int p = (int) (relative * getWidth());
-
-						System.out.println("dist to smallest: " + distanceToSmallest);
-						System.out.println("relative: " + relative);
-						System.out.println("xP: " + p);
 						g.drawLine(p, 0, p, getHeight());
 					}
 
