@@ -159,13 +159,8 @@ public class BasicTest {
 			DataSet<Double> dataSet = new DataSet<Double>(features, featureSampleSlice,
 					elements);
 			RForest<Double> forest = new RForest<Double>(dataSet, subSampleSize,
-<<<<<<< HEAD
-					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA);
-			forest.grow();
-=======
 					numSubSamples, RForest.DataMode.SAVE_ALL_THE_DATA, true);
-
->>>>>>> b916669e93015809cd6fe7f3d1254e60deb8bba2
+			forest.grow();
 
 			RForestUI ui = new RForestUI(forest);
 			ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
