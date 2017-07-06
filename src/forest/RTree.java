@@ -81,6 +81,11 @@ public class RTree<T extends Comparable<T>> implements Serializable {
 		public RNode<T> getParent() {
 			return parent;
 		}
+		
+		public RTree getTree()
+		{
+			return RTree.this;
+		}
 
 		public SplitPoint<T> getSplitPoint() {
 			return splitPoint;
@@ -123,6 +128,18 @@ public class RTree<T extends Comparable<T>> implements Serializable {
 
 	public int categorize(Element<T> element) {
 		return root.categorize(element);
+	}
+	
+	public DataSet<T> getSample()
+	{
+		return sample;
+	}
+	
+	@Override
+	public String toString()
+	{
+		// TODO Auto-generated method stub
+		return "Tree #"+treeID;
 	}
 
 	public void saveAs(File f) {
